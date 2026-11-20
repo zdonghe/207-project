@@ -450,74 +450,7 @@ The application follows Clean Architecture:
 
 Dependencies point inward. Controllers depend on input boundaries, interactors depend on data-access interfaces, and adapters implement those interfaces.
 
-```plantuml
-@startuml
-package "Frameworks and Drivers" {
-  [Swing Views]
-  [CKAN API Adapter]
-  [Local Cache]
-  [HTML Report Writer]
-  [CSV Report Writer]
-}
-
-package "Interface Adapters" {
-  [Controllers]
-  [Presenters]
-  [View Models]
-}
-
-package "Use Cases" {
-  interface SearchInputBoundary
-  interface DetailInputBoundary
-  interface CompareInputBoundary
-  interface ExportInputBoundary
-  interface BuildingDataSource
-  interface BuildingRepository
-  interface EvaluationRepository
-  interface FavouriteRepository
-  interface ReportWriter
-  [Search Interactor]
-  [Detail Interactor]
-  [Compare Interactor]
-  [Export Interactor]
-}
-
-package "Entities" {
-  [Building]
-  [Evaluation]
-  [EvaluationItem]
-  [Report]
-}
-
-[Swing Views] --> [Controllers]
-[Controllers] --> [SearchInputBoundary]
-[Controllers] --> [DetailInputBoundary]
-[Controllers] --> [CompareInputBoundary]
-[Controllers] --> [ExportInputBoundary]
-[Search Interactor] ..|> [SearchInputBoundary]
-[Detail Interactor] ..|> [DetailInputBoundary]
-[Compare Interactor] ..|> [CompareInputBoundary]
-[Export Interactor] ..|> [ExportInputBoundary]
-[Search Interactor] ..> [BuildingDataSource]
-[Detail Interactor] ..> [BuildingRepository]
-[Compare Interactor] ..> [EvaluationRepository]
-[Export Interactor] ..> [FavouriteRepository]
-[Export Interactor] ..> [ReportWriter]
-[CKAN API Adapter] ..|> [BuildingDataSource]
-[Local Cache] ..|> [BuildingDataSource]
-[Local Cache] ..|> [BuildingRepository]
-[Local Cache] ..|> [EvaluationRepository]
-[Local Cache] ..|> [FavouriteRepository]
-[HTML Report Writer] ..|> [ReportWriter]
-[CSV Report Writer] ..|> [ReportWriter]
-[Search Interactor] --> [Building]
-[Detail Interactor] --> [Evaluation]
-[Compare Interactor] --> [Evaluation]
-[Export Interactor] --> [Report]
-[Presenters] --> [View Models]
-[View Models] --> [Swing Views]
-@enduml
-```
+![Architecture](docs/diagrams/architecture.svg)
 
 ### Design Patterns
 
@@ -537,227 +470,68 @@ package "Entities" {
 
 ### UML Class Diagram
 
-```plantuml
-@startuml
-skinparam classAttributeIconSize 0
-
-package "Entities" {
-  class Building {
-    - rsn : String
-    - address : String
-    - ward : String
-    - wardName : String
-    - yearBuilt : Integer
-    - storeys : Integer
-    - units : Integer
-    - propertyType : String
-    - managementCompany : String
-    - latitude : Double
-    - longitude : Double
-    + getLatestEvaluation() : Optional<Evaluation>
-    + getEvaluationHistory() : List<Evaluation>
-    + getAddressKey() : String
-    + isRegistered() : boolean
-    + getDisplayName() : String
-  }
-
-  class Evaluation {
-    - rsn : String
-    - year : int
-    - completedOn : LocalDate
-    - currentScore : Integer
-    - proactiveScore : Integer
-    - reactiveScore : Integer
-    - items : List<EvaluationItem>
-    + getDeficiencies() : List<EvaluationItem>
-    + getScoreFor(category : String) : OptionalInt
-    + isImprovementOver(previous : Evaluation) : boolean
-    + getChangedItems(previous : Evaluation) : List<EvaluationChange>
-    + getSummary() : String
-  }
-
-  class EvaluationItem {
-    - name : String
-    - category : String
-    - score : Integer
-    - weight : double
-    - description : String
-    + isApplicable() : boolean
-    + isDeficiency() : boolean
-    + getSeverity() : Severity
-    + getNormalizedScore() : double
-  }
-
-  class Score {
-    - type : ScoreType
-    - value : Integer
-    + isValid() : boolean
-    + getRiskLevel() : RiskLevel
-    + compareTo(other : Score) : int
-  }
-
-  class Favourite {
-    - rsn : String
-    - note : String
-    - addedAt : LocalDateTime
-    + updateNote(note : String) : void
-    + isStale() : boolean
-    + getBuilding() : Building
-  }
-
-  class Report {
-    - id : String
-    - title : String
-    - createdAt : LocalDateTime
-    - buildings : List<Building>
-    - sections : List<ReportSection>
-    - format : ReportFormat
-    + addBuilding(building : Building) : void
-    + addSection(section : ReportSection) : void
-    + getBuildings() : List<Building>
-    + getSections() : List<ReportSection>
-    + getSummary() : String
-  }
-}
-
-Building "1" -- "*" Evaluation : has
-Evaluation "1" *-- "*" EvaluationItem : contains
-Evaluation "1" *-- "0..3" Score : reports
-Report "1" o-- "*" Building : includes
-Favourite "*" -- "1" Building : refers to
-@enduml
-```
+![UML class diagram](docs/diagrams/class-diagram.svg)
 
 ### Sequence Diagrams
 
 <details>
 <summary>Use Case 1: Search for a rental building</summary>
 
-```plantuml
-@startuml
-actor "Prospective tenant" as User
-participant "SearchView" as View
-participant "SearchController" as Controller
-participant "SearchInteractor" as Interactor
-participant "BuildingDataSource" as Source
-participant "SearchPresenter" as Presenter
-participant "SearchViewModel" as VM
-
-User -> View : enter address, ward, or building ID
-View -> Controller : search(request)
-Controller -> Interactor : execute(inputData)
-Interactor -> Source : findBuildings(request)
-Source --> Interactor : building records
-Interactor -> Interactor : normalize, join, group, rank
-Interactor -> Presenter : present(outputData)
-Presenter -> VM : update(results, message)
-VM --> View : property change
-View --> User : display ranked results
-@enduml
-```
+![Search sequence](docs/diagrams/search-sequence.svg)
 
 </details>
 
 <details>
 <summary>Use Case 2: View building evaluation history</summary>
 
-```plantuml
-@startuml
-actor "Prospective tenant" as User
-participant "DetailView" as View
-participant "DetailController" as Controller
-participant "DetailInteractor" as Interactor
-participant "BuildingRepository" as Repo
-participant "DetailPresenter" as Presenter
-participant "DetailViewModel" as VM
-
-User -> View : select a building
-View -> Controller : loadBuilding(rsn)
-Controller -> Interactor : execute(inputData)
-Interactor -> Repo : findByRsn(rsn)
-Repo --> Interactor : building and evaluations
-Interactor -> Interactor : order history, compute changes, collect deficiencies
-Interactor -> Presenter : present(outputData)
-Presenter -> VM : update(profile, history, deficiencies)
-VM --> View : property change
-View --> User : display profile and evaluation history
-@enduml
-```
+![Detail sequence](docs/diagrams/detail-sequence.svg)
 
 </details>
 
 <details>
 <summary>Use Case 3: Compare buildings and track trends</summary>
 
-```plantuml
-@startuml
-actor "Prospective tenant" as User
-participant "CompareView" as View
-participant "CompareController" as Controller
-participant "CompareInteractor" as Interactor
-participant "EvaluationRepository" as Repo
-participant "ComparePresenter" as Presenter
-participant "CompareViewModel" as VM
-
-User -> View : select buildings and choose Compare
-View -> Controller : compare(selection)
-Controller -> Interactor : execute(inputData)
-Interactor -> Repo : findEvaluations(selection)
-Repo --> Interactor : evaluation histories
-Interactor -> Interactor : align years, compute differences and ward benchmark
-Interactor -> Presenter : present(outputData)
-Presenter -> VM : update(table, chart, summary)
-VM --> View : property change
-View --> User : display comparison
-@enduml
-```
+![Compare sequence](docs/diagrams/compare-sequence.svg)
 
 </details>
 
 <details>
 <summary>Use Case 4: Save favourites and export a report</summary>
 
-```plantuml
-@startuml
-actor "Prospective tenant" as User
-participant "ExportView" as View
-participant "ExportController" as Controller
-participant "ExportInteractor" as Interactor
-participant "FavouriteRepository" as FavRepo
-participant "ReportWriter" as Writer
-participant "ExportPresenter" as Presenter
-participant "ExportViewModel" as VM
-
-User -> View : save a favourite or export a report
-View -> Controller : save(selection, options)
-Controller -> Interactor : execute(inputData)
-
-alt Save favourite
-  Interactor -> FavRepo : save(selection)
-  FavRepo --> Interactor : saved
-else Export report
-  Interactor -> Writer : write(report)
-  Writer --> Interactor : file path
-end
-
-Interactor -> Presenter : present(outputData)
-Presenter -> VM : update(confirmation, path)
-VM --> View : property change
-View --> User : display confirmation
-@enduml
-```
+![Export sequence](docs/diagrams/export-sequence.svg)
 
 </details>
+
+### Diagram sources
+
+The editable PlantUML sources are in [`docs/diagrams/`](docs/diagrams/). Regenerate the SVG and PNG images with:
+
+```bash
+java -jar plantuml.jar -tsvg docs/diagrams/*.puml
+java -jar plantuml.jar -tpng docs/diagrams/*.puml
+```
 
 ---
 
 ## How to Run
 
-The Maven project and runnable JAR will be added during implementation. The intended workflow is:
+The project is a Maven application. From the repository root:
 
 ```bash
 mvn clean package
 java -jar target/rentsafe-to-explorer.jar
+```
+
+To check the live CKAN API before opening the UI:
+
+```bash
+java -jar target/rentsafe-to-explorer.jar --live
+```
+
+Run the tests and Checkstyle with:
+
+```bash
+mvn test
 ```
 
 The app will use a local cache when one is available. If no cache exists, it will fetch the latest data from the City of Toronto Open Data API.

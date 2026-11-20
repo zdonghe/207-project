@@ -1,0 +1,13 @@
+@startuml
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+
+rectangle "Frameworks and Drivers\nSwing Views | CKAN API Adapter | Local Cache | Report Writers" as F
+rectangle "Interface Adapters\nControllers | Presenters | View Models" as I
+rectangle "Use Cases\nInteractors | Input Boundaries | Data Access Interfaces" as U
+rectangle "Entities\nBuilding | Evaluation | EvaluationItem | Score | Favourite | Report" as E
+
+F --> I : calls
+I --> U : executes
+U --> E : uses
+@enduml

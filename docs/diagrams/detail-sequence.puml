@@ -1,0 +1,20 @@
+@startuml
+actor "Prospective tenant" as User
+participant "DetailView" as View
+participant "DetailController" as Controller
+participant "DetailInteractor" as Interactor
+participant "BuildingRepository" as Repo
+participant "DetailPresenter" as Presenter
+participant "DetailViewModel" as VM
+
+User -> View : select a building
+View -> Controller : loadBuilding(rsn)
+Controller -> Interactor : execute(inputData)
+Interactor -> Repo : findByRsn(rsn)
+Repo --> Interactor : building and evaluations
+Interactor -> Interactor : order history, compute changes, collect deficiencies
+Interactor -> Presenter : present(outputData)
+Presenter -> VM : update(profile, history, deficiencies)
+VM --> View : property change
+View --> User : display profile and evaluation history
+@enduml
