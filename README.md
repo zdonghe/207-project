@@ -1,409 +1,195 @@
 # RentSafeTO Explorer
 
-## Team Information
+## Overview
 
-### Team Members
+We are building RentSafeTO Explorer for renters in Toronto who want to check a building before signing a lease. The City publishes RentSafeTO registration and evaluation data, but it is split across datasets and hard to search. Students and first-time renters are the most likely to miss it before signing a lease. Our app puts it in one place.
 
+RentSafeTO Explorer lets a tenant search by address, ward, or building ID; view evaluation scores, deficiencies, and history; compare two buildings; and save a favourites list or export a report. The project domain is civic technology, housing, and open-data analysis.
+
+The project is a Java 11 Swing desktop application built with Clean Architecture. It will read the City of Toronto Open Data CKAN API and keep a local cache, so it can still show data when the network is unavailable. It is an independent student project, not affiliated with the City of Toronto.
+
+## Quick start
+
+You need Java 11 and Maven.
+
+```bash
+mvn clean test
+mvn package
+```
+
+Checkstyle runs during `validate`, and the JUnit 5 tests run under Surefire. There is no `Main` class on `main` yet, so `java -jar` does not work. The runnable jar comes with the search use case.
+
+## Team
+
+- Dong He
 - Nicholas Cheng
 - Belina Zhu
 - Sophie Pigott
-- Dong He
 
----
+## User stories
 
-## Project Description
+| #   | Story                                                                                                                                                                  | Owner          |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| 1   | As a prospective tenant, I want to search for a rental building by address, ward, or building ID so that I can check its evaluation history before booking a viewing.  | Dong He        |
+| 2   | As a prospective tenant, I want to view a building's evaluation scores, deficiencies, and score history so that I can understand its condition and enforcement record. | Belina Zhu     |
+| 3   | As a prospective tenant, I want to compare two buildings side by side, including their scores and ward benchmark, so that I can choose between them.                   | Nicholas Cheng |
+| 4   | As a prospective tenant, I want to save buildings to a favourites list and export a report so that I can revisit my options and share them with roommates.             | Sophie Pigott  |
 
-### Domain
+## MVP
 
-Civic technology, housing, and open-data analysis.
+| Use case                            | Owner          |
+| ----------------------------------- | -------------- |
+| Search for a rental building        | Dong He        |
+| View building evaluation history    | Belina Zhu     |
+| Compare two buildings               | Nicholas Cheng |
+| Save favourites and export a report | Sophie Pigott  |
 
-### Problem
-
-Prospective renters in Toronto often sign a lease without checking a building's maintenance and evaluation history. The City publishes RentSafeTO evaluation scores, category-level results, and registration details, but the information is split across datasets and is difficult to search, compare, and interpret. Students and first-time renters are especially likely to miss this information.
-
-### What the application does
-
-RentSafeTO Explorer is a desktop application that helps a prospective tenant:
-
-- search for a registered rental building by address, ward, or building ID;
-- view the building's evaluation scores, category results, deficiencies, and history;
-- compare two buildings or track one building over time;
-- save a shortlist and export a report.
-
-The application uses the City of Toronto Open Data API and keeps a local cache so it can still show data when the network is unavailable. It is an independent student project and is not affiliated with the City of Toronto.
-
-### Intended users
-
-Prospective tenants, especially students and first-time renters in Toronto, who want a quick, understandable summary of a building's evaluation history before booking a viewing or signing a lease.
-
-### Glossary
-
-- **RSN:** the City's registration ID for a building. The app calls this the building ID in the user interface.
-- **Evaluation:** a City RentSafeTO inspection record with scores and category results.
-- **Deficiency:** a category result with a score of 0 or 1.
-- **Ward:** the City ward used as the geographic filter. The current dataset does not include neighbourhood names.
-
----
-
-## User Stories
-
-### User Story 1 - Search for a building
-
-**Owner:** Dong He
-
-As a prospective tenant, I want to search for a rental building by address, ward, or building ID so that I can check its evaluation history before booking a viewing.
-
-### User Story 2 - View evaluation history
-
-**Owner:** Nicholas Cheng
-
-As a prospective tenant, I want to view a building's evaluation scores, deficiencies, and score history so that I can understand its condition and enforcement record.
-
-### User Story 3 - Compare buildings
-
-**Owner:** Belina Zhu
-
-As a prospective tenant, I want to compare two buildings or track one building over time so that I can choose between options and see whether conditions are improving.
-
-### User Story 4 - Save and export
-
-**Owner:** Sophie Pigott
-
-As a prospective tenant, I want to save buildings to a shortlist and export a report so that I can revisit my options and share them with roommates.
-
----
-
-## Use Cases
+## Use cases
 
 ### Use Case 1: Search for a Rental Building
 
-**Derived from:** User Story 1
+| Field            | Value                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Primary actor    | Prospective tenant                                                                                                 |
+| Supporting actor | City of Toronto Open Data service, when live data is used                                                          |
+| Preconditions    | The application is running. Building data is available from the live service or the local cache.                   |
+| Trigger          | The tenant enters a search term and asks to search.                                                                |
+| Success outcome  | A ranked list of matching buildings is displayed with address, ward, latest evaluation score, and evaluation year. |
 
-**Primary actor:** Prospective tenant
+**Main success scenario**
 
-**Supporting actor:** City of Toronto Open Data service (when live data is used)
-
-**Preconditions:**
-
-- The application is running.
-- Building data is available from the live service or a local cache.
-
-**Trigger:** The tenant enters a search term, selects optional filters, and asks to search.
-
-**Success outcome:** A ranked list of matching buildings is displayed, with address, ward, latest evaluation score, and evaluation year.
-
-**Main success scenario:**
-
-1. The tenant enters an address, ward, or building ID and optionally selects filters.
-2. The system checks that the search request is valid.
+1. The tenant enters an address, ward, or building ID.
+2. The system checks that the request is valid.
 3. The system finds matching buildings from the live service or the local cache.
-4. The system combines registration and evaluation information for each building.
+4. The system combines registration and evaluation information.
 5. The system keeps the most recent evaluation for each building.
 6. The system ranks the results and displays them.
 
-**Extensions:**
+<details>
+<summary>Extensions</summary>
 
-- **2a. The search request is empty or invalid.**
-  1. The system explains what is needed and does not search.
-- **3a. The live service is unavailable.**
-  1. The system uses cached data.
-  2. The system tells the tenant that the results may be out of date.
-- **3b. No buildings match.**
-  1. The system says so and suggests removing filters or broadening the search.
-- **4a. Some registration or evaluation records are missing.**
-  1. The system still shows the building and marks the missing information.
+- **2a. The search request is empty or invalid.** The system explains what is needed and does not search.
+- **3a. The live service is unavailable.** The system uses cached data and tells the tenant the results may be out of date.
+- **3b. No buildings match.** The system says so and suggests removing filters or broadening the search.
+- **4a. Some registration or evaluation records are missing.** The system still shows the building and marks the missing information.
 
-**Postconditions:** The results are displayed. The search may be added to the tenant's recent searches.
-
----
+</details>
 
 ### Use Case 2: View Building Evaluation History
 
-**Derived from:** User Story 2
+| Field           | Value                                                                                                                                  |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Primary actor   | Prospective tenant                                                                                                                     |
+| Preconditions   | The tenant has selected a building from the search results or favourites.                                                              |
+| Trigger         | The tenant opens the building's detail view.                                                                                           |
+| Success outcome | The building profile, latest scores, history, category results, deficiencies, and changes since the previous evaluation are displayed. |
 
-**Primary actor:** Prospective tenant
-
-**Preconditions:**
-
-- The tenant has selected a building from the search results or favourites.
-
-**Trigger:** The tenant opens the building's detail view.
-
-**Success outcome:** The building's profile, latest scores, evaluation history, category results, deficiencies, and changes since the previous evaluation are displayed.
-
-**Main success scenario:**
+**Main success scenario**
 
 1. The tenant selects a building.
-2. The system retrieves the building's registration and evaluation records.
+2. The system retrieves its registration and evaluation records.
 3. The system orders the evaluations from oldest to newest.
-4. The system identifies the latest evaluation and any changes since the previous evaluation.
-5. The system displays the building profile, score trend, category breakdown, deficiencies, and changes.
+4. The system identifies the latest evaluation and any changes since the previous one.
+5. The system displays the profile, score history, category breakdown, deficiencies, and changes.
 
-**Extensions:**
+<details>
+<summary>Extensions</summary>
 
-- **2a. No registration record exists.**
-  1. The system shows the evaluation data and marks the registration as missing.
-- **2b. No evaluation records exist.**
-  1. The system shows the registration data and explains that no evaluations are available.
-- **3a. Some scores are not applicable.**
-  1. The system shows them as "not applicable" and leaves them out of comparisons.
-- **4a. There is only one evaluation.**
-  1. The system hides the change comparison.
+- **2a. No registration record exists.** The system shows the evaluation data and marks the registration as missing.
+- **2b. No evaluation records exist.** The system shows the registration data and explains that no evaluations are available.
+- **3a. Some scores are not applicable.** The system shows them as not applicable and leaves them out of comparisons.
+- **4a. There is only one evaluation.** The system hides the change comparison.
 
-**Postconditions:** The detail view is displayed. The tenant can add the building to favourites or compare it.
+</details>
 
----
+### Use Case 3: Compare Two Buildings
 
-### Use Case 3: Compare Buildings and Track Trends
+| Field           | Value                                                                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Primary actor   | Prospective tenant                                                                                                                    |
+| Preconditions   | The tenant has selected two buildings.                                                                                                |
+| Trigger         | The tenant asks to compare the selected buildings.                                                                                    |
+| Success outcome | A side-by-side comparison of the two buildings is displayed, including scores, differences, a comparison chart, and a ward benchmark. |
 
-**Derived from:** User Story 3
+**Main success scenario**
 
-**Primary actor:** Prospective tenant
+1. The tenant selects two buildings.
+2. The system retrieves both evaluation histories.
+3. The system aligns evaluations by year and calculates differences.
+4. The system calculates a ward benchmark.
+5. The system displays the comparison table, chart, differences, benchmark, and summary.
 
-**Preconditions:**
+<details>
+<summary>Extensions</summary>
 
-- The tenant has selected two buildings, or one building with at least two evaluations.
+- **2a. One building has no evaluation data.** The system marks it as having insufficient data and compares what is available.
+- **3a. The evaluation years do not overlap.** The system compares the closest available years and labels the mismatch.
+- **4a. The ward has too few evaluated buildings.** The system hides the benchmark and explains why.
 
-**Trigger:** The tenant asks to compare the selected buildings or view the building's trend.
-
-**Success outcome:** A side-by-side comparison and a trend chart are displayed, with a ward benchmark for context.
-
-**Main success scenario:**
-
-1. The tenant selects two buildings or one building over time.
-2. The system retrieves the evaluation histories for the selection.
-3. The system aligns the evaluations by year and calculates differences.
-4. The system calculates a ward benchmark for context.
-5. The system displays the comparison table, trend chart, benchmark, and summary.
-
-**Extensions:**
-
-- **2a. One building has no evaluation data.**
-  1. The system marks it as having insufficient data and compares what is available.
-- **3a. The evaluation years do not overlap.**
-  1. The system compares the closest available years and labels the mismatch.
-- **4a. The ward has too few evaluated buildings.**
-  1. The system hides the benchmark and explains why.
-
-**Postconditions:** The comparison is displayed. The tenant can save it or export it.
-
----
+</details>
 
 ### Use Case 4: Save Favourites and Export a Report
 
-**Derived from:** User Story 4
+| Field           | Value                                                                                |
+| --------------- | ------------------------------------------------------------------------------------ |
+| Primary actor   | Prospective tenant                                                                   |
+| Preconditions   | At least one building is selected.                                                   |
+| Trigger         | The tenant asks to save a favourite or export a report.                              |
+| Success outcome | The favourite or report is saved and can be reopened after the application restarts. |
 
-**Primary actor:** Prospective tenant
-
-**Preconditions:**
-
-- At least one building is selected.
-
-**Trigger:** The tenant asks to save a favourite or export a report.
-
-**Success outcome:** The favourite or report is saved and can be loaded after the application restarts.
-
-**Main success scenario:**
+**Main success scenario**
 
 1. The tenant selects one or more buildings.
 2. The tenant chooses to save a favourite or export a report.
 3. The system checks the selection and report options.
-4. The system saves the favourite or writes the report file.
+4. The system saves the favourite or the report.
 5. The system confirms the result and shows where the report was saved.
 
-**Extensions:**
+<details>
+<summary>Extensions</summary>
 
-- **2a. No buildings are selected.**
-  1. The system explains that a selection is required and does not save.
-- **4a. The file cannot be written.**
-  1. The system explains the problem and keeps the selection so the tenant can try again.
-- **4b. A report with the same name exists.**
-  1. The system asks whether to overwrite it or choose a new name.
+- **2a. No buildings are selected.** The system explains that a selection is required and does not save.
+- **4a. The file cannot be written.** The system explains the problem and keeps the selection so the tenant can try again.
+- **4b. A report with the same name exists.** The system asks whether to overwrite it or choose a new name.
 
-**Postconditions:** The favourite or report is available after restart.
-
----
-
-## MVP
-
-| Team member    | MVP use case                        |
-| -------------- | ----------------------------------- |
-| Dong He        | Search for a rental building        |
-| Nicholas Cheng | View building evaluation history    |
-| Belina Zhu     | Compare buildings and track trends  |
-| Sophie Pigott  | Save favourites and export a report |
-
-Each member will lead the interactor, controller, presenter, UI trigger, and UI update for their use case, and will coordinate with anyone sharing a view or data source.
-
-### MVP scope
-
-**In scope:**
-
-- Search by address, ward, or building ID.
-- Building profile and evaluation history from 2023 onward.
-- Category-level results and deficiencies.
-- Compare two buildings or track one building over time.
-- Ward benchmark.
-- Favourites and HTML/CSV report export.
-- Live API access with a local cache.
-
-**Out of scope for the MVP:**
-
-- User accounts and multi-user synchronization.
-- Neighbourhood boundary search. The current data has ward, not neighbourhood.
-- Building-name search. The current data has addresses, not building names.
-- Fire inspection and health hazard datasets.
-- Map view.
-- PDF export.
-- Mobile or web version.
-- Official risk score. Any custom score is a future extension and is not the City's score.
-
----
+</details>
 
 ## Entities
 
-### Building
+The Entity layer contains the program's model and enterprise rules. It has no dependency on Swing, data access, or the CKAN API.
 
-**Instance variables:**
+| Entity             | Instance variables                                                                                                                                 | Relevant methods                                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `Building`         | `rsn`, `address`, `ward`, `wardName`, `yearBuilt`, `storeys`, `units`, `propertyType`, `managementCompany`, `latitude`, `longitude`, `evaluations` | `addEvaluation`, `getLatestEvaluation`, `getEvaluationHistory`, `getAddressKey`, `isRegistered`, `getDisplayName` |
+| `Evaluation`       | `rsn`, `year`, `completedOn`, `currentScore`, `proactiveScore`, `reactiveScore`, `items`                                                           | `getDeficiencies`, `getItem`, `getItemsInCategory`, `isImprovementOver`, `getChangedItems`, `getSummary`          |
+| `EvaluationItem`   | `name`, `category`, `score`, `weight`, `description`                                                                                               | `isApplicable`, `isDeficiency`, `getSeverity`, `getNormalizedScore`                                               |
+| `EvaluationChange` | `itemName`, `previousScore`, `currentScore`                                                                                                        | `getDelta`, `isImprovement`, `getDescription`                                                                     |
+| `Severity`         | Enum constants: `UNKNOWN`, `LOW`, `MEDIUM`, `HIGH`                                                                                                 | `values`, `valueOf`                                                                                               |
 
-- `rsn: String` - City registration ID for the building.
-- `address: String` - Street address from the City dataset.
-- `ward: String` - Ward number.
-- `wardName: String` - Ward name.
-- `yearBuilt: Integer` - Year the building was built.
-- `storeys: Integer` - Number of confirmed storeys.
-- `units: Integer` - Number of confirmed units.
-- `propertyType: String` - Private, TCHC, or other.
-- `managementCompany: String` - Property management company, when available.
-- `latitude: Double` - Latitude.
-- `longitude: Double` - Longitude.
+Relationships: a `Building` has zero or more `Evaluation` objects. An `Evaluation` contains zero or more `EvaluationItem` objects. `EvaluationChange` records the movement of one item between two evaluations.
 
-**Methods:**
+Planned entities, not yet implemented: `Score`, `ScoreType`, `RiskLevel`, `Favourite`, and `Report`. The current `Evaluation` stores scores as `Integer` fields rather than `Score` objects.
 
-- `getLatestEvaluation(): Optional<Evaluation>` - returns the most recent evaluation.
-- `getEvaluationHistory(): List<Evaluation>` - returns evaluations ordered by year.
-- `getAddressKey(): String` - returns a normalized address key for matching.
-- `isRegistered(): boolean` - whether registration data is available.
-- `getDisplayName(): String` - returns the address and ward for display.
+A UML class diagram is in [`docs/design.md`](docs/design.md).
 
-### Evaluation
+## API
 
-**Instance variables:**
-
-- `rsn: String` - Building registration ID.
-- `year: int` - Evaluation year.
-- `completedOn: LocalDate` - Date the evaluation was completed.
-- `currentScore: Integer` - Current building evaluation score.
-- `proactiveScore: Integer` - Proactive evaluation score.
-- `reactiveScore: Integer` - Reactive score from orders and notices.
-- `items: List<EvaluationItem>` - Category-level results.
-
-**Methods:**
-
-- `getDeficiencies(): List<EvaluationItem>` - returns items with a low score.
-- `getScoreFor(category: String): OptionalInt` - returns the score for a category.
-- `isImprovementOver(previous: Evaluation): boolean` - compares two evaluations.
-- `getChangedItems(previous: Evaluation): List<EvaluationChange>` - returns improvements and declines.
-- `getSummary(): String` - returns a short human-readable summary.
-
-### EvaluationItem
-
-**Instance variables:**
-
-- `name: String` - Category name, such as "Pest control log".
-- `category: String` - Grouping, such as "Health and safety".
-- `score: Integer` - 0 to 3, or null when not applicable.
-- `weight: double` - Weight of the category, when available.
-- `description: String` - City-provided description of the category.
-
-**Methods:**
-
-- `isApplicable(): boolean` - whether the item has a score.
-- `isDeficiency(): boolean` - whether the score is 0 or 1.
-- `getSeverity(): Severity` - LOW, MEDIUM, or HIGH.
-- `getNormalizedScore(): double` - score normalized for comparison.
-
-### Score
-
-**Instance variables:**
-
-- `type: ScoreType` - CURRENT, PROACTIVE, or REACTIVE.
-- `value: Integer` - Score value.
-
-**Methods:**
-
-- `isValid(): boolean` - whether the score is present.
-- `getRiskLevel(): RiskLevel` - LOW, MEDIUM, or HIGH.
-- `compareTo(other: Score): int` - compares two scores.
-
-### Favourite
-
-**Instance variables:**
-
-- `rsn: String` - Building registration ID.
-- `note: String` - Tenant's note about the building.
-- `addedAt: LocalDateTime` - When the building was saved.
-
-**Methods:**
-
-- `updateNote(note: String): void` - replaces the note.
-- `isStale(): boolean` - whether the saved evaluation is older than the latest available.
-- `getBuilding(): Building` - returns the associated building.
-
-### Report
-
-**Instance variables:**
-
-- `id: String` - Report identifier.
-- `title: String` - Report title.
-- `createdAt: LocalDateTime` - Creation time.
-- `buildings: List<Building>` - Buildings included in the report.
-- `sections: List<ReportSection>` - Report sections.
-- `format: ReportFormat` - HTML or CSV.
-
-**Methods:**
-
-- `addBuilding(building: Building): void` - adds a building.
-- `addSection(section: ReportSection): void` - adds a section.
-- `getBuildings(): List<Building>` - returns the included buildings.
-- `getSections(): List<ReportSection>` - returns the included sections.
-- `getSummary(): String` - returns a short summary.
-
-**Relationships:**
-
-- A `Building` has zero or more `Evaluation` objects.
-- An `Evaluation` has one or more `EvaluationItem` objects and up to three `Score` objects.
-- A `Favourite` refers to one `Building`.
-- A `Report` includes one or more `Building` objects.
-
----
-
-## API Usage
-
-**API name:** City of Toronto Open Data CKAN API
+**API:** City of Toronto Open Data CKAN API.
 
 **Documentation:**
 
 - CKAN API guide: https://docs.ckan.org/en/latest/api/
-- Dataset metadata: https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/package_show?id=apartment-building-evaluation
-- Evaluation dataset page: https://open.toronto.ca/dataset/apartment-building-evaluation/
-- Registration dataset page: https://open.toronto.ca/dataset/apartment-building-registration/
+- Evaluation dataset: https://open.toronto.ca/dataset/apartment-building-evaluation/
+- Registration dataset: https://open.toronto.ca/dataset/apartment-building-registration/
 
-**Datasets and resources:**
+**Resources:**
 
-- Apartment Building Evaluation, 2023-current: resource `244f7a02-da5c-425b-b55f-fbdd133dd732`, 7,158 records, refreshed 2026-11-19.
-- Apartment Building Registration: resource `3ad76a8c-0518-4df2-b94e-8c747d62f8c1`, 3,611 records, refreshed 2026-07-05.
+- Apartment Building Evaluation, 2023-current: `244f7a02-da5c-425b-b55f-fbdd133dd732`
+- Apartment Building Registration: `3ad76a8c-0518-4df2-b94e-8c747d62f8c1`
 
-**How the API is used:**
+**How we will use it:** The data access layer will call `datastore_search` on the evaluation resource to search by address, ward, or building ID, and cache responses locally. We verified the evaluation and registration queries manually.
 
-- `package_search` and `package_show` discover the datasets, resource IDs, and refresh dates.
-- `datastore_search` supports live search by address, ward, or building ID, with filters, sorting, pagination, and a total count. It also returns field metadata, including descriptions for the evaluation categories.
-- `datastore/dump` refreshes the local cache when the app needs the full dataset.
-- The app caches JSON/CSV responses locally so the demo and normal use work offline.
-- The app reads CKAN field metadata to display human-readable descriptions for the evaluation categories.
-- The app handles network failures, empty results, malformed records, and missing fields.
-
-**Successful call:** Yes. Verified on 2026-11-19.
+**Successful call:** Yes. The evaluation query was verified on 2026-11-20 and reports a total of 20 records for 10 buildings. The registration query was also verified manually and returns matching BALLIOL records.
 
 Example request:
 
@@ -411,157 +197,8 @@ Example request:
 GET https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/datastore_search?resource_id=244f7a02-da5c-425b-b55f-fbdd133dd732&q=BALLIOL&limit=2
 ```
 
-Observed result:
+Field mapping, observed responses, and registration details are in [`docs/api.md`](docs/api.md).
 
-- `success: true`
-- `total: 20`
-- Records include `RSN`, `SITE ADDRESS`, `YEAR EVALUATED`, `CURRENT BUILDING EVAL SCORE`, and the evaluation category fields.
+## Data and licence
 
-Example registration request:
-
-```
-GET https://ckan0.cf.opendata.inter.prod-toronto.ca/api/3/action/datastore_search?resource_id=3ad76a8c-0518-4df2-b94e-8c747d62f8c1&limit=3
-```
-
-Observed result:
-
-- `success: true`
-- `total: 3611`
-- Records include `RSN`, `SITE_ADDRESS`, `PROP_MANAGEMENT_COMPANY_NAME`, and building amenity fields.
-
-**Notes:**
-
-- `datastore_search_sql` is not available on this CKAN instance. It returns 404, so aggregation and joining are done locally after retrieval.
-- The public web page may render the dataset as "Retired," but the CKAN API reports `is_retired: false`, `state: active`, and `last_refreshed: 2026-11-19`. The API metadata is the source of truth for this project.
-- The API is keyless. The app should still cache responses and avoid unnecessary repeated requests.
-
----
-
-## Design Diagrams
-
-### Architecture Overview
-
-The application follows Clean Architecture:
-
-- **Entities:** `Building`, `Evaluation`, `EvaluationItem`, `Score`, `Favourite`, `Report`.
-- **Use Cases:** search, view detail, compare, save/export, with input/output data and interactors.
-- **Interface Adapters:** controllers, presenters, and view models.
-- **Frameworks and Drivers:** Swing views, the CKAN API adapter, and the local JSON/CSV cache.
-
-Dependencies point inward. Controllers depend on input boundaries, interactors depend on data-access interfaces, and adapters implement those interfaces.
-
-![Architecture](docs/diagrams/architecture.svg)
-
-### Design Patterns
-
-- **Adapter:** `CkanApiClient` implements `BuildingDataSource` and hides HTTP, JSON, and CKAN details from the use cases.
-- **Strategy:** `AddressNormalizer` rules, `RankingStrategy`, and `ReportWriter` allow new behavior without changing interactors.
-- **Builder:** `ReportBuilder` assembles a report from a summary, building sections, charts, and provenance.
-- **Chain of Responsibility:** address normalization runs through handlers for whitespace, case, street type, direction, and unit removal.
-- **Repository:** `BuildingRepository`, `EvaluationRepository`, and `FavouriteRepository` hide local file storage.
-- **Observer:** presenters update view models, and views observe those updates.
-
-### Design Principles
-
-- **SRP:** the API adapter, normalizer, record joiner, aggregator, report builder, and writers are separate classes.
-- **OCP:** new normalization rules, ranking strategies, and report formats can be added without changing the interactors.
-- **DIP:** interactors depend on interfaces such as `BuildingDataSource` and `ReportWriter`, not on HTTP, Swing, or file APIs.
-- **ISP:** small interfaces keep each use case dependent only on the operations it needs.
-
-### UML Class Diagram
-
-![UML class diagram](docs/diagrams/class-diagram.svg)
-
-### Sequence Diagrams
-
-<details>
-<summary>Use Case 1: Search for a rental building</summary>
-
-![Search sequence](docs/diagrams/search-sequence.svg)
-
-</details>
-
-<details>
-<summary>Use Case 2: View building evaluation history</summary>
-
-![Detail sequence](docs/diagrams/detail-sequence.svg)
-
-</details>
-
-<details>
-<summary>Use Case 3: Compare buildings and track trends</summary>
-
-![Compare sequence](docs/diagrams/compare-sequence.svg)
-
-</details>
-
-<details>
-<summary>Use Case 4: Save favourites and export a report</summary>
-
-![Export sequence](docs/diagrams/export-sequence.svg)
-
-</details>
-
-### Diagram sources
-
-The editable PlantUML sources are in [`docs/diagrams/`](docs/diagrams/). Regenerate the SVG and PNG images with:
-
-```bash
-java -jar plantuml.jar -tsvg docs/diagrams/*.puml
-java -jar plantuml.jar -tpng docs/diagrams/*.puml
-```
-
----
-
-## How to Run
-
-The project is a Maven application. From the repository root:
-
-```bash
-mvn clean package
-java -jar target/rentsafe-to-explorer.jar
-```
-
-To check the live CKAN API before opening the UI:
-
-```bash
-java -jar target/rentsafe-to-explorer.jar --live
-```
-
-Run the tests and Checkstyle with:
-
-```bash
-mvn test
-```
-
-The app will use a local cache when one is available. If no cache exists, it will fetch the latest data from the City of Toronto Open Data API.
-
----
-
-## Notes
-
-### Data source and licence
-
-This project uses open data published by the City of Toronto under the Open Government Licence - Toronto. The app must include attribution to the City of Toronto.
-
-### Data limitations
-
-- Evaluation data is collected and published by the City; it may be incomplete, delayed, or revised.
-- The 2023 evaluation process changed the categories and weights, so pre-2023 data is not directly comparable. The MVP uses the 2023-current resource.
-- Some category scores are blank, `N/A`, or `0`; the app must handle these explicitly.
-- Addresses are inconsistent across records. Matching and normalization are part of the project, not a perfect source of truth.
-- A building's evaluation is a point-in-time snapshot. Conditions can change after an evaluation.
-
-### Disclaimer
-
-RentSafeTO Explorer is an independent student project. It is not affiliated with or endorsed by the City of Toronto. It is for information only and is not legal, rental, or safety advice. Renters should verify information with the City and inspect a building before signing a lease.
-
-### Future work
-
-- Neighbourhood boundary search using a separate City neighbourhood dataset.
-- Fire inspection and health hazard datasets.
-- Map view of buildings and scores.
-- Configurable risk score with transparent weights.
-- Alerts when a saved building receives a new evaluation.
-- PDF report export.
-- Optional user accounts and synchronization through the course DB API.
+This project uses City of Toronto open data under the Open Government Licence - Toronto. RentSafeTO Explorer is an independent student project, not affiliated with or endorsed by the City of Toronto. It is for information only and is not legal, rental, or safety advice.

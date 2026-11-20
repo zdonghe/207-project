@@ -1,11 +1,12 @@
 @startuml
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
+title Target architecture (Entity layer implemented; other layers in progress or planned)
 
-rectangle "Frameworks and Drivers\nSwing Views | CKAN API Adapter | Local Cache | Report Writers" as F
-rectangle "Interface Adapters\nControllers | Presenters | View Models" as I
-rectangle "Use Cases\nInteractors | Input Boundaries | Data Access Interfaces" as U
-rectangle "Entities\nBuilding | Evaluation | EvaluationItem | Score | Favourite | Report" as E
+rectangle "Frameworks and Drivers\nSwing Views | CKAN API Adapter | Local Cache\nPlanned: Report Writers" as F
+rectangle "Interface Adapters\nControllers | Presenters | View Models\nPlanned" as I
+rectangle "Use Cases\nSearch interactor (in progress)\nDetail | Compare | Save (planned)" as U
+rectangle "Entities\nBuilding | Evaluation | EvaluationItem | EvaluationChange | Severity\nPlanned: Score | Favourite | Report" as E
 
 F --> I : calls
 I --> U : executes

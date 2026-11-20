@@ -14,6 +14,8 @@ package "Entities" {
     - managementCompany : String
     - latitude : Double
     - longitude : Double
+    - evaluations : List<Evaluation>
+    + addEvaluation(evaluation : Evaluation) : void
     + getLatestEvaluation() : Optional<Evaluation>
     + getEvaluationHistory() : List<Evaluation>
     + getAddressKey() : String
@@ -30,7 +32,8 @@ package "Entities" {
     - reactiveScore : Integer
     - items : List<EvaluationItem>
     + getDeficiencies() : List<EvaluationItem>
-    + getScoreFor(category : String) : OptionalInt
+    + getItem(name : String) : Optional<EvaluationItem>
+    + getItemsInCategory(category : String) : List<EvaluationItem>
     + isImprovementOver(previous : Evaluation) : boolean
     + getChangedItems(previous : Evaluation) : List<EvaluationChange>
     + getSummary() : String
@@ -48,7 +51,25 @@ package "Entities" {
     + getNormalizedScore() : double
   }
 
-  class Score {
+  class EvaluationChange {
+    - itemName : String
+    - previousScore : int
+    - currentScore : int
+    + getDelta() : int
+    + isImprovement() : boolean
+    + getDescription() : String
+  }
+
+  enum Severity {
+    UNKNOWN
+    LOW
+    MEDIUM
+    HIGH
+  }
+}
+
+package "Planned entities" {
+  class Score <<planned>> {
     - type : ScoreType
     - value : Integer
     + isValid() : boolean
@@ -56,7 +77,20 @@ package "Entities" {
     + compareTo(other : Score) : int
   }
 
-  class Favourite {
+  enum ScoreType <<planned>> {
+    CURRENT
+    PROACTIVE
+    REACTIVE
+  }
+
+  enum RiskLevel <<planned>> {
+    UNKNOWN
+    LOW
+    MEDIUM
+    HIGH
+  }
+
+  class Favourite <<planned>> {
     - rsn : String
     - note : String
     - addedAt : LocalDateTime
@@ -65,7 +99,7 @@ package "Entities" {
     + getBuilding() : Building
   }
 
-  class Report {
+  class Report <<planned>> {
     - id : String
     - title : String
     - createdAt : LocalDateTime
@@ -78,11 +112,28 @@ package "Entities" {
     + getSections() : List<ReportSection>
     + getSummary() : String
   }
+
+  class ReportSection <<planned>> {
+    - title : String
+    - content : String
+  }
+
+  enum ReportFormat <<planned>> {
+    HTML
+    CSV
+  }
 }
 
 Building "1" -- "*" Evaluation : has
 Evaluation "1" *-- "*" EvaluationItem : contains
-Evaluation "1" *-- "0..3" Score : reports
+EvaluationItem --> Severity : has
+Evaluation ..> EvaluationChange : creates
+Evaluation "1" *-- "0..3" Score : reports (planned)
 Report "1" o-- "*" Building : includes
+Report "1" *-- "*" ReportSection : contains
 Favourite "*" -- "1" Building : refers to
+
+legend right
+  <<planned>> = not implemented yet
+endlegend
 @enduml
