@@ -1,0 +1,27 @@
+@startuml
+actor "Prospective tenant" as User
+participant "ExportView" as View
+participant "ExportController" as Controller
+participant "ExportInteractor" as Interactor
+participant "FavouriteRepository" as FavRepo
+participant "ReportWriter" as Writer
+participant "ExportPresenter" as Presenter
+participant "ExportViewModel" as VM
+
+User -> View : save a favourite or export a report
+View -> Controller : save(selection, options)
+Controller -> Interactor : execute(inputData)
+
+alt Save favourite
+  Interactor -> FavRepo : save(selection)
+  FavRepo --> Interactor : saved
+else Export report
+  Interactor -> Writer : write(report)
+  Writer --> Interactor : file path
+end
+
+Interactor -> Presenter : present(outputData)
+Presenter -> VM : update(confirmation, path)
+VM --> View : property change
+View --> User : display confirmation
+@enduml

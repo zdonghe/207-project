@@ -1,0 +1,20 @@
+@startuml
+actor "Prospective tenant" as User
+participant "SearchView" as View
+participant "SearchController" as Controller
+participant "SearchInteractor" as Interactor
+participant "BuildingDataSource" as Source
+participant "SearchPresenter" as Presenter
+participant "SearchViewModel" as VM
+
+User -> View : enter address, ward, or building ID
+View -> Controller : search(request)
+Controller -> Interactor : execute(inputData)
+Interactor -> Source : findBuildings(request)
+Source --> Interactor : building records
+Interactor -> Interactor : normalize, join, group, rank
+Interactor -> Presenter : present(outputData)
+Presenter -> VM : update(results, message)
+VM --> View : property change
+View --> User : display ranked results
+@enduml

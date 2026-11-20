@@ -1,0 +1,139 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Entities" {
+  class Building {
+    - rsn : String
+    - address : String
+    - ward : String
+    - wardName : String
+    - yearBuilt : Integer
+    - storeys : Integer
+    - units : Integer
+    - propertyType : String
+    - managementCompany : String
+    - latitude : Double
+    - longitude : Double
+    - evaluations : List<Evaluation>
+    + addEvaluation(evaluation : Evaluation) : void
+    + getLatestEvaluation() : Optional<Evaluation>
+    + getEvaluationHistory() : List<Evaluation>
+    + getAddressKey() : String
+    + isRegistered() : boolean
+    + getDisplayName() : String
+  }
+
+  class Evaluation {
+    - rsn : String
+    - year : int
+    - completedOn : LocalDate
+    - currentScore : Integer
+    - proactiveScore : Integer
+    - reactiveScore : Integer
+    - items : List<EvaluationItem>
+    + getDeficiencies() : List<EvaluationItem>
+    + getItem(name : String) : Optional<EvaluationItem>
+    + getItemsInCategory(category : String) : List<EvaluationItem>
+    + isImprovementOver(previous : Evaluation) : boolean
+    + getChangedItems(previous : Evaluation) : List<EvaluationChange>
+    + getSummary() : String
+  }
+
+  class EvaluationItem {
+    - name : String
+    - category : String
+    - score : Integer
+    - weight : double
+    - description : String
+    + isApplicable() : boolean
+    + isDeficiency() : boolean
+    + getSeverity() : Severity
+    + getNormalizedScore() : double
+  }
+
+  class EvaluationChange {
+    - itemName : String
+    - previousScore : int
+    - currentScore : int
+    + getDelta() : int
+    + isImprovement() : boolean
+    + getDescription() : String
+  }
+
+  enum Severity {
+    UNKNOWN
+    LOW
+    MEDIUM
+    HIGH
+  }
+}
+
+package "Planned entities" {
+  class Score <<planned>> {
+    - type : ScoreType
+    - value : Integer
+    + isValid() : boolean
+    + getRiskLevel() : RiskLevel
+    + compareTo(other : Score) : int
+  }
+
+  enum ScoreType <<planned>> {
+    CURRENT
+    PROACTIVE
+    REACTIVE
+  }
+
+  enum RiskLevel <<planned>> {
+    UNKNOWN
+    LOW
+    MEDIUM
+    HIGH
+  }
+
+  class Favourite <<planned>> {
+    - rsn : String
+    - note : String
+    - addedAt : LocalDateTime
+    + updateNote(note : String) : void
+    + isStale() : boolean
+    + getBuilding() : Building
+  }
+
+  class Report <<planned>> {
+    - id : String
+    - title : String
+    - createdAt : LocalDateTime
+    - buildings : List<Building>
+    - sections : List<ReportSection>
+    - format : ReportFormat
+    + addBuilding(building : Building) : void
+    + addSection(section : ReportSection) : void
+    + getBuildings() : List<Building>
+    + getSections() : List<ReportSection>
+    + getSummary() : String
+  }
+
+  class ReportSection <<planned>> {
+    - title : String
+    - content : String
+  }
+
+  enum ReportFormat <<planned>> {
+    HTML
+    CSV
+  }
+}
+
+Building "1" -- "*" Evaluation : has
+Evaluation "1" *-- "*" EvaluationItem : contains
+EvaluationItem --> Severity : has
+Evaluation ..> EvaluationChange : creates
+Evaluation "1" *-- "0..3" Score : reports (planned)
+Report "1" o-- "*" Building : includes
+Report "1" *-- "*" ReportSection : contains
+Favourite "*" -- "1" Building : refers to
+
+legend right
+  <<planned>> = not implemented yet
+endlegend
+@enduml

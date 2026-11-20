@@ -1,0 +1,20 @@
+@startuml
+actor "Prospective tenant" as User
+participant "CompareView" as View
+participant "CompareController" as Controller
+participant "CompareInteractor" as Interactor
+participant "EvaluationRepository" as Repo
+participant "ComparePresenter" as Presenter
+participant "CompareViewModel" as VM
+
+User -> View : select buildings and choose Compare
+View -> Controller : compare(selection)
+Controller -> Interactor : execute(inputData)
+Interactor -> Repo : findEvaluations(selection)
+Repo --> Interactor : evaluation histories
+Interactor -> Interactor : align years, compute differences and ward benchmark
+Interactor -> Presenter : present(outputData)
+Presenter -> VM : update(table, chart, summary)
+VM --> View : property change
+View --> User : display comparison
+@enduml
