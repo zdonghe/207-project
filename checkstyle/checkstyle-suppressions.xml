@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.0//EN"
+    "https://checkstyle.org/dtds/suppressions_1_0.dtd">
+
+<!--
+    Google Java Style normally forbids underscores in package names, but the
+    course team project layout requires `data_access` and `interface_adapter`
+    (Clean Architecture package names used by the README). These suppressions
+    are deliberately limited to the package-name check for those two folders.
+-->
+<suppressions>
+  <suppress checks="PackageName" files="[\\/]data_access[\\/].*\.java$"/>
+  <suppress checks="PackageName" files="[\\/]interface_adapter[\\/].*\.java$"/>
+</suppressions>
